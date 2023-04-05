@@ -1,6 +1,5 @@
 ﻿using DogGo.Models;
 using Microsoft.Data.SqlClient;
-using NuGet.Protocol.Plugins;
 
 namespace DogGo.Repositories;
 
