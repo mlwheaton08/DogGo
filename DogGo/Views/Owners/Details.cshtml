@@ -47,6 +47,33 @@
             @Html.DisplayFor(model => model.NeighborhoodId)
         </dd>
     </dl>
+
+    <h2>Dogs</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Breed
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Dogs)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Breed)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new {  id = Model.Id  }) |
