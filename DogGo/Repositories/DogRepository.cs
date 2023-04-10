@@ -52,6 +52,39 @@ public class DogRepository : IDogRepository
         }
     }
 
+    public Dog GetDogById(int id)
+    {
+        using (SqlConnection conn = Connection)
+        {
+            conn.Open();
+            using (SqlCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"SELECT Id, [Name], Breed, OwnerId
+                                    FROM Dog
+                                    WHERE Id = @id";
+
+                cmd.Parameters.AddWithValue("@id", id);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                Dog dog = null;
+                if (reader.Read())
+                {
+                    dog = new Dog()
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        Breed = reader.GetString(reader.GetOrdinal("Breed")),
+                        OwnerId = reader.GetInt32(reader.GetOrdinal("OwnerId"))
+                    };
+                }
+
+                reader.Close();
+                return dog;
+            }
+        }
+    }
+
     public void AddDog(Dog dog)
     {
         using (SqlConnection conn = Connection)
@@ -83,7 +116,7 @@ public class DogRepository : IDogRepository
             using (SqlCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandText = @"
-                            UPDATE Owner
+                            UPDATE Dog
                             SET 
                                 [Name] = @name, 
                                 Breed = @breed, 
@@ -100,5 +133,21 @@ public class DogRepository : IDogRepository
         }
     }
 
-    public void DeleteDog(int dogId) { }
+    public void DeleteDog(int dogId)
+    {
+        using (SqlConnection conn = Connection)
+        {
+            conn.Open();
+
+            using (SqlCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"DELETE FROM Dog
+                                    WHERE Id = @id";
+
+                cmd.Parameters.AddWithValue("@id", dogId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
 }
