@@ -1,6 +1,8 @@
 ﻿using DogGo.Models;
 using DogGo.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DogGo.Controllers
 {
@@ -14,9 +16,13 @@ namespace DogGo.Controllers
         }
 
         // GET: DogsController
+        [Authorize]
         public ActionResult Index()
         {
-            List<Dog> dogs = _dogRepo.GetAllDogs();
+            int ownerId = GetCurrentUserId();
+
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(ownerId);
+
             return View(dogs);
         }
 
@@ -34,6 +40,7 @@ namespace DogGo.Controllers
         }
 
         // GET: DogsController/Create
+        [Authorize]
         public ActionResult Create()
         {
             return View();
@@ -46,6 +53,7 @@ namespace DogGo.Controllers
         {
             try
             {
+                dog.OwnerId = GetCurrentUserId();
                 _dogRepo.AddDog(dog);
                 return RedirectToAction(nameof(Index));
             }
@@ -58,14 +66,21 @@ namespace DogGo.Controllers
         // GET: DogsController/Edit/5
         public ActionResult Edit(int id)
         {
-            Dog dog = _dogRepo.GetDogById(id);
+            int ownerId = GetCurrentUserId();
 
-            if(dog == null)
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(ownerId);
+            var validDog = dogs.FirstOrDefault(d => d.Id == id);
+
+            if(validDog == null)
             {
                 return NotFound();
             }
+            else
+            {
+                Dog dog = _dogRepo.GetDogById(id);
+                return View(dog);
+            }
 
-            return View(dog);
         }
 
         // POST: DogsController/Edit/5
@@ -75,6 +90,7 @@ namespace DogGo.Controllers
         {
             try
             {
+                dog.OwnerId = GetCurrentUserId();
                 _dogRepo.UpdateDog(dog);
                 return RedirectToAction(nameof(Index));
             }
@@ -87,8 +103,20 @@ namespace DogGo.Controllers
         // GET: DogsController/Delete/5
         public ActionResult Delete(int id)
         {
-            Dog dog = _dogRepo.GetDogById(id);
-            return View(dog);
+            int ownerId = GetCurrentUserId();
+
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(ownerId);
+            var validDog = dogs.FirstOrDefault(d => d.Id == id);
+
+            if (validDog == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                Dog dog = _dogRepo.GetDogById(id);
+                return View(dog);
+            }
         }
 
         // POST: DogsController/Delete/5
@@ -104,6 +132,20 @@ namespace DogGo.Controllers
             catch
             {
                 return View(dog);
+            }
+        }
+
+        private int GetCurrentUserId()
+        {
+            string id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (id == null)
+            {
+                return 0;
+            }
+            else
+            {
+                return int.Parse(id);
             }
         }
     }
